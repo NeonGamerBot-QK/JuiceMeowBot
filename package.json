@@ -1,0 +1,13 @@
+{
+  "name": "JuiceMeowBot",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@keyv/sqlite": "^4.0.1",
+    "@slack/bolt": "^4.2.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "keyv": "^5.2.3"
+  }
+}
