@@ -46,6 +46,7 @@ if(await db.get(`help_request_${message.thread_ts}`)) {
 
 }
         } else {
+            // if(message.type !== "message") return;
             app.client.reactions.add({
                 channel: message.channel,
                 timestamp: message.ts,
@@ -59,7 +60,10 @@ if(await db.get(`help_request_${message.thread_ts}`)) {
             })
 const helper_side_message = await   app.client.chat.postMessage({
                 channel: `C08B5HW0TU6`,
-                text: `:neocat: New help request :3`,
+                text: `:neocat: New help request :3\n${await app.client.chat.getPermalink({
+                    channel: `C08AXLAASJK`,
+                    message_ts: message.ts,
+                }).then(d=>d.permalink)}`,
             })
             let oldReqs = []
             for(const e of (await db.get(`old_help_${message.user}`) || [])) {
@@ -82,15 +86,15 @@ const helper_side_message = await   app.client.chat.postMessage({
                 text: `last 5 help requests urls:\n- ${oldReqs.map(e=>e.link.permalink).join('\n- ')}\n${stuffFromEmail}\n\n<pretend i have airtable creds and cool metadata ab user is here>`,
                 thread_ts: helper_side_message.ts,
             })
-            await app.client.chat.postMessage({
-                channel: `C08B5HW0TU6`,
-                text: message.text,
-                // as_user: true,
-                icon_url: userInfo.user.profile.image_72,
-                username: userInfo.user.real_name,
-                // icon_url: ,
-                thread_ts: helper_side_message.ts,
-            })
+            // await app.client.chat.postMessage({
+            //     channel: `C08B5HW0TU6`,
+            //     text: message.text,
+            //     // as_user: true,
+            //     icon_url: userInfo.user.profile.image_72,
+            //     username: userInfo.user.real_name,
+            //     // icon_url: ,
+            //     thread_ts: helper_side_message.ts,
+            // })
             await app.client.chat.postMessage({
                 thread_ts: helper_side_message.ts,
                 channel: helper_side_message.channel,
@@ -167,6 +171,7 @@ app.event('message', async ({ message, say }) => {
         })
         return;
     }
+
     app.client.chat.postMessage({
         channel: `C08AXLAASJK`,
         text: message.text,
@@ -181,6 +186,49 @@ app.event('message', async ({ message, say }) => {
             timestamp: message.ts,
             name: "done"
         })
+})
+app.event('reaction_added', async ({ event, say }) => {
+    console.debug(`#reaction_added`, event)
+    if(event.reaction !== "white_check_mark") return;
+    const entry = await db.get(`help_request_${event.item.ts}`)
+    console.log(entry)
+    if(!entry) return;
+    if(entry.user !== event.user) return;
+    if(event.item.ts !== entry.message_ts) return;
+    // close moment
+    console.log(`This is the right message.. right?`)
+    const data = entry;
+    app.client.chat.postMessage({
+        channel: `C08AXLAASJK`,
+        text: `:neocat: Help request marked as done by <@${event.user}> :3`,
+        // as_user: true,
+        thread_ts: data.message_ts,
+    })
+    app.client.chat.postMessage({
+        channel: `C08B5HW0TU6`,
+        text: `:neocat: Help request marked as done by <@${event.user}> :3`,        // as_user: true,
+        thread_ts: data.helper_side_message_ts,
+    })
+    await app.client.reactions.remove({
+        channel: `C08AXLAASJK`,
+        timestamp: data.message_ts,
+        name: "neocat_mug"
+    })
+    await app.client.reactions.add({
+        channel: `C08AXLAASJK`,
+        timestamp: data.message_ts,
+        name: "done"
+    })
+    
+    // get message link
+    // app.client 
+    data.message_link = await app.client.chat.getPermalink({
+        channel: `C08AXLAASJK`,
+        message_ts: data.message_ts,
+    }) 
+    db.set(`old_help_${data.user}`,[...(await db.get(`old_help_${data.user}`) || []), data])
+    await db.delete(`help_request_${entry.message_ts}`)
+    await db.delete(`help_request_${data.helper_side_message_ts}`)
 })
 
 // handle dms to create macros
@@ -209,6 +257,7 @@ app.event('message', async ({ message, say }) => {
 // button to close it = mark as done
 app.action(/mark-done-\w/i, async ({ body, ack, say }) => {
     const data = (await db.get(`help_request_${body.message.thread_ts}`))
+    if(!data) return;
 //   console.log(data, body, body.message.thread_ts)
     app.client.chat.postMessage({
         channel: `C08AXLAASJK`,
