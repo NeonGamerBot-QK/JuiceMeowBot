@@ -108,6 +108,11 @@ app.event("message", async ({ message, say }) => {
       );
       await app.client.chat.postMessage({
         channel: helper_side_message.channel,
+        thread_ts: helper_side_message.ts,
+        text: `User email: \`${userInfo.user.profile.email || "umidk"}\``
+      })
+      await app.client.chat.postMessage({
+        channel: helper_side_message.channel,
         text: `last 5 help requests urls:\n- ${oldReqs.map((e) => e.link.permalink).join("\n- ")}\n${stuffFromEmail}\n\n<pretend i have airtable creds and cool metadata ab user is here>`,
         thread_ts: helper_side_message.ts,
       });
