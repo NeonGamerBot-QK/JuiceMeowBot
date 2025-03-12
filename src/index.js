@@ -112,11 +112,11 @@ app.event("message", async ({ message, say }) => {
       const stuffFromEmail = await getStuffFromEmail(
         userInfo.user.profile.email,
       );
-      await app.client.chat.postMessage({
-        channel: helper_side_message.channel,
-        text: `${stuffFromEmail}\n\n<pretend i have airtable creds and cool metadata ab user is here>`,
-        thread_ts: helper_side_message.ts,
-      });
+      // await app.client.chat.postMessage({
+      //   channel: helper_side_message.channel,
+      //   text: `${stuffFromEmail}\n\n<pretend i have airtable creds and cool metadata ab user is here>`,
+      //   thread_ts: helper_side_message.ts,
+      // });
       await app.client.chat.postMessage({
         channel: helper_side_message.channel,
         thread_ts: helper_side_message.ts,
